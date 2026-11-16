@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusMarket</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- ================= SPLASH SCREEN ================= -->
+<div id="splash" class="page active">
+
+    <div class="splash-content">
+        <div class="logo-box">🛍️</div>
+
+        <h1>Campus<span>Market</span></h1>
+
+        <p>Temukan Jual-Beli Antar Kampus</p>
+
+        <div class="category-mini">
+            <span>🍔</span>
+            <span>📚</span>
+            <span>👕</span>
+            <span>💻</span>
+        </div>
+
+        <button onclick="showPage('home')">
+            Mulai Sekarang
+        </button>
+    </div>
+
+</div>
+
+
+<!-- ================= HOME ================= -->
+<div id="home" class="page">
+
+    <header class="header">
+        <div>
+            <small>CampusMarket</small>
+            <h2>Halo, All 👋</h2>
+        </div>
+
+        <div class="header-icons">
+            🔔
+            🛒
+            👤 
+
+        </div>
+    </header>
+
+    <div class="location">
+        📍 Universitas UI UX
+        <span>⌄</span>
+    </div>
+
+    <!-- Search -->
+    <div class="search">
+        🔍
+        <input
+            type="text"
+            id="search"
+            placeholder="Cari produk atau kebutuhan..."
+            onkeyup="searchProduct()"
+        >
+    </div>
+
+    <!-- Banner -->
+    <section class="banner">
+        <div>
+            <small>SPESIAL UNTUK KAMU</small>
+            <h2>Diskon hingga<br>50%!</h2>
+            <button>Belanja Sekarang →</button>
+        </div>
+
+        <div class="banner-icon">
+            🛍️
+        </div>
+    </section>
+
+    <!-- Pesanan -->
+    <div class="section-title">
+        <h3>Sedang Akan Sekarang</h3>
+        <a href="#">Lihat Semua</a>
+    </div>
+
+    <div class="order-card">
+        <div class="order-icon">📦</div>
+
+        <div class="order-info">
+            <b>Pesanan sedang diproses</b>
+            <p>2 produk • Rp45.000</p>
+        </div>
+
+        <span class="status">Diproses</span>
+    </div>
+
+    <!-- Kategori -->
+    <div class="section-title">
+        <h3>Kategori Produk</h3>
+        <a href="#">Lihat Semua</a>
+    </div>
+
+    <div class="categories">
+        <div onclick="filterCategory('Makanan')">
+            <div>🍔</div>
+            <span>Makanan</span>
+        </div>
+
+        <div onclick="filterCategory('Fashion')">
+            <div>👕</div>
+            <span>Fashion</span>
+        </div>
+
+        <div onclick="filterCategory('Buku')">
+            <div>📚</div>
+            <span>Buku</span>
+        </div>
+
+        <div onclick="filterCategory('Elektronik')">
+            <div>💻</div>
+            <span>Elektronik</span>
+        </div>
+
+        <div>
+            <div>🎁</div>
+            <span>Lainnya</span>
+        </div>
+    </div>
+
+    <!-- Produk -->
+    <div class="section-title">
+        <h3>Jualan di Sekitar Kampus</h3>
+        <a href="#">Lihat Semua</a>
+    </div>
+
+    <div class="product-grid" id="productList">
+
+        <div class="product" data-category="Makanan">
+            <div class="product-image">🍜</div>
+
+            <span class="favorite">♡</span>
+
+            <small>MAKANAN</small>
+            <h3>Mie Pedas Kampus</h3>
+            <p>Rp15.000</p>
+
+            <div class="seller">
+                👤 <span>Rina</span>
+            </div>
+        </div>
+
+
+        <div class="product" data-category="Makanan">
+            <div class="product-image">☕</div>
+
+            <span class="favorite">♡</span>
+
+            <small>MINUMAN</small>
+            <h3>Kopi Gula Aren</h3>
+            <p>Rp12.000</p>
+
+            <div class="seller">
+                👤 <span>Andi</span>
+            </div>
+        </div>
+
+
+        <div class="product" data-category="Fashion">
+            <div class="product-image">👕</div>
+
+            <span class="favorite">♡</span>
+
+            <small>FASHION</small>
+            <h3>Kaos Kampus</h3>
+            <p>Rp75.000</p>
+
+            <div class="seller">
+                👤 <span>Dimas</span>
+            </div>
+        </div>
+
+
+        <div class="product" data-category="Buku">
+            <div class="product-image">📖</div>
+
+            <span class="favorite">♡</span>
+
+            <small>BUKU</small>
+            <h3>Buku Catatan</h3>
+            <p>Rp20.000</p>
+
+            <div class="seller">
+                👤 <span>Salsa</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Promo -->
+    <div class="promo">
+        <div>
+            <b>🎉 Dapatkan diskon 10%</b>
+            <p>Gunakan kode <strong>KAMPUS10</strong></p>
+        </div>
+
+        <button>Gunakan</button>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a class="active" onclick="showPage('home')">
+            🏠
+            <span>Beranda</span>
+        </a>
+
+        <a>
+            🔎
+            <span>Cari</span>
+        </a>
+
+        <a onclick="showPage('detail')">
+            ➕
+            <span>Jual</span>
+        </a>
+
+        <a>
+            💬
+            <span>Pesan</span>
+        </a>
+
+        <a onclick="showPage('profile')">
+            👤
+            <span>Profil</span>
+        </a>
+    </nav>
+
+</div>
+
+
+<!-- ================= DETAIL PRODUK ================= -->
+<div id="detail" class="page">
+
+    <header class="detail-header">
+        <button onclick="showPage('home')">←</button>
+
+        <h3>Detail Produk</h3>
+
+        <div>♡</div>
+    </header>
+
+    <div class="detail-image">
+        👕
+    </div>
+
+    <div class="detail-content">
+
+        <span class="badge">TERSEDIA</span>
+
+        <h1>Rp100.000</h1>
+
+        <h2>Brownies Homemade Fudgey</h2>
+
+        <p class="rating">
+            ⭐ 4.9 &nbsp; • &nbsp; 125 terjual
+        </p>
+
+        <div class="seller-detail">
+            <div class="avatar">👩</div>
+
+            <div>
+                <b>Rina Mahardika</b>
+                <p>Mahasiswa • Universitas Langlangbuana</p>
+            </div>
+
+            <button>Chat</button>
+        </div>
+
+        <hr>
+
+        <h3>Deskripsi Produk</h3>
+
+        <p class="description">
+            Brownies homemade dengan rasa cokelat yang lembut
+            dan fudgy. Cocok untuk teman belajar, rapat organisasi,
+            maupun hadiah untuk teman kampus.
+        </p>
+
+        <h3>Pilih Varian</h3>
+
+        <div class="variants">
+            <button>Original</button>
+            <button>Cheese</button>
+            <button>Almond</button>
+        </div>
+
+        <button class="buy-button">
+            🛒 Pesan Sekarang
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ================= PROFILE ================= -->
+<div id="profile" class="page">
+
+    <header class="profile-header">
+        <button onclick="showPage('home')">←</button>
+        <h3>Profil Penjual</h3>
+        <span>•••</span>
+    </header>
+
+    <div class="profile-card">
+
+        <div class="big-avatar">👩</div>
+
+        <h2>Rina Mahardika</h2>
+
+        <p>⭐ 4.9 • 125 Penjualan</p>
+
+        <button class="follow">+ Ikuti Toko</button>
+        <button class="chat">💬 Chat Penjual</button>
+
+    </div>
+
+    <div class="seller-info">
+        <h3>Informasi Penjual</h3>
+
+        <p>🎓 Mahasiswa Universitas Langlangbuana</p>
+        <p>📍 Bandung</p>
+        <p>🟢 Aktif sekarang</p>
+        <p>📦 Bergabung sejak 2025</p>
+    </div>
+
+    <div class="section-title">
+        <h3>Produk Rina</h3>
+    </div>
+
+    <div class="product-grid">
+
+        <div class="product">
+            <div class="product-image">🍫</div>
+            <small>MAKANAN</small>
+            <h3>Brownies Homemade</h3>
+            <p>Rp100.000</p>
+        </div>
+
+        <div class="product">
+            <div class="product-image">🍪</div>
+            <small>MAKANAN</small>
+            <h3>Cookies Cokelat</h3>
+            <p>Rp35.000</p>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
