@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Emulator Sederhana</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .controls {
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Bingkai Emulator HP */
+        .phone-frame {
+            width: 360px;
+            height: 640px;
+            background: #000;
+            border: 16px solid #333;
+            border-radius: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Simulasi Layar di dalam HP */
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        /* Mode Lanskap */
+        .phone-frame.landscape {
+            width: 640px;
+            height: 360px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <input type="text" id="urlInput" value="https://cdn.tailwindcss.com" style="width: 250px; padding: 7px;">
+        <button onclick="loadURL()">Muat URL</button>
+        <button onclick="toggleRotate()">Putar (Rotate)</button>
+    </div>
+
+    <!-- Kotak Emulator -->
+    <div class="phone-frame" id="phoneFrame">
+        <iframe id="screen" src="game_emulator.html"></iframe>
+    </div>
+
+    <script>
+        function loadURL() {
+            const url = document.getElementById('urlInput').value;
+            document.getElementById('screen').src = url;
+        }
+
+        function toggleRotate() {
+            const frame = document.getElementById('phoneFrame');
+            frame.classList.toggle('landscape');
+        }
+    </script>
+
+</body>
+</html>

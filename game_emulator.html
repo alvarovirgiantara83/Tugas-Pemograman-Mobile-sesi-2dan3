@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Combat 2D - Arcade Fighting Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Teko:wght@600;700&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Teko', sans-serif;
+            background-color: #0b0c10;
+            color: #fff;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        /* Glassmorphic UI overlays */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Touch controller styling */
+        .touch-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            transition: all 0.08s ease;
+        }
+        .touch-btn:active {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(0.92);
+        }
+
+        /* Health & Energy bar animations */
+        .bar-transition {
+            transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Arcade glowing effects */
+        .glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
+        .glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+        }
+        .glow-gold {
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-center items-center relative select-none">
+
+    <!-- GAME CONTAINER -->
+    <div id="gameContainer" class="relative w-full h-full max-w-6xl max-h-[720px] flex flex-col items-center justify-center overflow-hidden bg-black shadow-2xl md:rounded-2xl border border-slate-800">
+        
+        <!-- TOP UI / HUD -->
+        <div id="hud" class="absolute top-0 left-0 right-0 z-10 p-3 md:p-6 flex flex-col pointer-events-none">
+            <div class="flex justify-between items-center w-full gap-2 md:gap-6">
+                
+                <!-- P1 HEALTH & ENERGY -->
+                <div class="flex-1 flex flex-col items-start">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-red-500 font-bold text-xl md:text-3xl tracking-wider">P1 RED NINJA</span>
+                        <span id="p1Wins" class="text-xs md:text-sm bg-red-950 text-red-400 px-2 py-0.5 rounded border border-red-800">W: 0</span>
+                    </div>
+                    <!-- Health Bar -->
+                    <div class="w-full bg-slate-900 border-2 border-red-600 rounded-md p-0.5 h-6 md:h-8 glow-red">
+                        <div id="p1Health" class="bg-gradient-to-r from-red-700 via-red-500 to-amber-400 h-full w-full rounded bar-transition"></div>
+                    </div>
+                    <!-- Special Energy Bar -->
+                    <div class="w-2/3 bg-slate-950 border border-amber-600/60 rounded-sm mt-1 h-2 md:h-3">
+                        <div id="p1Energy" class="bg-gradient-to-r from-amber-600 to-yellow-300 h-full w-0 bar-transition"></div>
+                    </div>
+                </div>
+
+                <!-- TIMER & ROUND INFO -->
+                <div class="flex flex-col items-center justify-center px-2">
+                    <div id="timer" class="pixel-font text-3xl md:text-5xl text-yellow-400 bg-slate-950/80 px-3 md:px-5 py-1 rounded-lg border-2 border-yellow-500/50 shadow-lg">60</div>
+                    <div id="roundText" class="text-xs md:text-sm text-slate-300 tracking-widest mt-1 uppercase font-bold">ROUND 1</div>
+                </div>
+
+                <!-- P2 / CPU HEALTH & ENERGY -->
+                <div class="flex-1 flex flex-col items-end">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span id="p2Wins" class="text-xs md:text-sm bg-blue-950 text-blue-400 px-2 py-0.5 rounded border border-blue-800">W: 0</span>
+                        <span id="p2Label" class="text-blue-400 font-bold text-xl md:text-3xl tracking-wider">CYBER KNIGHT</span>
+                    </div>
+                    <!-- Health Bar -->
+                    <div class="w-full bg-slate-900 border-2 border-blue-600 rounded-md p-0.5 h-6 md:h-8 glow-blue flex justify-end">
+                        <div id="p2Health" class="bg-gradient-to-l from-blue-700 via-blue-500 to-cyan-400 h-full w-full rounded bar-transition"></div>
+                    </div>
+                    <!-- Special Energy Bar -->
+                    <div class="w-2/3 bg-slate-950 border border-cyan-600/60 rounded-sm mt-1 h-2 md:h-3 flex justify-end">
+                        <div id="p2Energy" class="bg-gradient-to-l from-cyan-600 to-teal-300 h-full w-0 bar-transition"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COMBO COUNTERS -->
+            <div class="flex justify-between w-full mt-2">
+                <div id="p1Combo" class="text-amber-400 font-bold text-2xl md:text-4xl italic opacity-0 transition-opacity">2 HITS!</div>
+                <div id="p2Combo" class="text-cyan-400 font-bold text-2xl md:text-4xl italic opacity-0 transition-opacity">3 HITS!</div>
+            </div>
+        </div>
+
+        <!-- CANVAS -->
+        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+
+        <!-- START / MAIN MENU OVERLAY -->
+        <div id="mainMenu" class="absolute inset-0 z-30 flex flex-col items-center justify-center glass-panel p-6 text-center">
+            <h1 class="pixel-font text-3xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 mb-2 drop-shadow-lg">
+                CYBER COMBAT
+            </h1>
+            <p class="text-slate-300 text-lg md:text-2xl mb-8 tracking-wide">2D ARCADE FIGHTING CHAMPIONSHIP</p>
+
+            <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md mb-8">
+                <button id="btnPvsAI" class="flex-1 py-4 px-6 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-bold text-xl md:text-2xl rounded-xl border border-red-400/50 shadow-lg glow-red transition-all transform hover:-translate-y-1">
+                    1 PLAYER (VS CPU)
+                </button>
+                <button id="btnPvsP" class="flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xl md:text-2xl rounded-xl border border-blue-400/50 shadow-lg glow-blue transition-all transform hover:-translate-y-1">
+                    2 PLAYERS (LOCAL)
+                </button>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 max-w-lg w-full text-left text-xs md:text-sm text-slate-300">
+                <div class="font-bold text-yellow-400 mb-2 text-center text-base">KONTROL GAME (KEYBOARD):</div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-red-400 font-bold">PLAYER 1:</span><br>
+                        • A / D : Jalan Kiri / Kanan<br>
+                        • W : Lompat | S : Tangkis (Block)<br>
+                        • J : Pukulan | K : Tendangan<br>
+                        • L : Jurus Spesial (Membutuhkan Energi)
+                    </div>
+                    <div>
+                        <span class="text-blue-400 font-bold">PLAYER 2:</span><br>
+                        • Panah Kiri/Kanan : Jalan<br>
+                        • Panah Atas : Lompat | Bawah : Tangkis<br>
+                        • Numpad 1 : Pukulan | 2 : Tendangan<br>
+                        • Numpad 3 : Jurus Spesial
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROUND ANNOUNCER / BANNER OVERLAY -->
+        <div id="bannerOverlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none hidden bg-black/40">
+            <h2 id="bannerTitle" class="pixel-font text-4xl md:text-7xl text-yellow-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] animate-bounce">
+                READY
+            </h2>
+            <p id="bannerSub" class="text-xl md:text-3xl text-white font-bold tracking-widest mt-2"></p>
+        </div>
+
+        <!-- PAUSE / RESTART OVERLAY -->
+        <div id="pauseMenu" class="absolute inset-0 z-30 flex flex-col items-center justify-center glass-panel p-6 text-center hidden">
+            <h2 id="pauseTitle" class="pixel-font text-3xl md:text-5xl text-yellow-400 mb-6">GAME PAUSED</h2>
+            <div class="flex flex-col gap-4 w-64">
+                <button id="btnResume" class="py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl rounded-lg">LANJUTKAN</button>
+                <button id="btnRestart" class="py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-xl rounded-lg">MAIN LAGI</button>
+                <button id="btnMenu" class="py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xl rounded-lg">MENU UTAMA</button>
+            </div>
+        </div>
+
+        <!-- TOUCH CONTROLS (ON-SCREEN FOR MOBILE/TABLET) -->
+        <div id="touchControls" class="absolute bottom-2 left-0 right-0 z-20 px-3 flex justify-between items-end pointer-events-none hidden md:hidden">
+            <!-- D-PAD P1 -->
+            <div class="flex flex-col items-center pointer-events-auto">
+                <button id="tJump" class="touch-btn w-12 h-12 rounded-full mb-1 flex items-center justify-center text-lg font-bold">▲</button>
+                <div class="flex gap-2">
+                    <button id="tLeft" class="touch-btn w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold">◄</button>
+                    <button id="tBlock" class="touch-btn w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold text-amber-300">DEF</button>
+                    <button id="tRight" class="touch-btn w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold">►</button>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS P1 -->
+            <div class="grid grid-cols-3 gap-2 pointer-events-auto">
+                <button id="tPunch" class="touch-btn w-12 h-12 rounded-full bg-red-500/30 text-red-300 font-bold text-sm border-red-400">PUNCH</button>
+                <button id="tKick" class="touch-btn w-12 h-12 rounded-full bg-orange-500/30 text-orange-300 font-bold text-sm border-orange-400">KICK</button>
+                <button id="tSpecial" class="touch-btn w-12 h-12 rounded-full bg-yellow-500/40 text-yellow-300 font-bold text-sm border-yellow-400">ULTI</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT GAME LOGIC -->
+    <script>
+        // --- AUDIO SYNTHESIS (Web Audio API) ---
+        class SoundController {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playPunch() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.12);
+            }
+
+            playKick() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.18);
+                gain.gain.setValueAtTime(0.9, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.18);
+            }
+
+            playHit() {
+                if (!this.ctx) return;
+                const bufferSize = this.ctx.sampleRate * 0.1;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start();
+            }
+
+            playBlock() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playSpecial() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.35);
+            }
+        }
+
+        const audio = new SoundController();
+
+        // --- PARTICLE ENGINE ---
+        class Particle {
+            constructor(x, y, vx, vy, color, size, life) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.size = size;
+                this.life = life;
+                this.maxLife = life;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // --- PROJECTILE CLASS (FIREBALL) ---
+        class Fireball {
+            constructor(x, y, velocityX, owner) {
+                this.x = x;
+                this.y = y;
+                this.vx = velocityX;
+                this.owner = owner;
+                this.radius = 18;
+                this.active = true;
+            }
+
+            update() {
+                this.x += this.vx;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                const grad = ctx.createRadialGradient(this.x, this.y, 2, this.x, this.y, this.radius);
+                if (this.owner === 'p1') {
+                    grad.addColorStop(0, '#ffffff');
+                    grad.addColorStop(0.4, '#f97316');
+                    grad.addColorStop(1, '#ef4444');
+                } else {
+                    grad.addColorStop(0, '#ffffff');
+                    grad.addColorStop(0.4, '#06b6d4');
+                    grad.addColorStop(1, '#3b82f6');
+                }
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Fireball aura
+                ctx.shadowColor = this.owner === 'p1' ? '#ef4444' : '#3b82f6';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // --- FIGHTER CHARACTER CLASS ---
+        class Fighter {
+            constructor({ x, y, color, headColor, isP1, canvasHeight }) {
+                this.x = x;
+                this.y = y;
+                this.width = 50;
+                this.height = 110;
+                this.color = color;
+                this.headColor = headColor;
+                this.isP1 = isP1;
+                this.canvasHeight = canvasHeight;
+
+                this.vx = 0;
+                this.vy = 0;
+                this.speed = 7;
+                this.jumpStrength = -16;
+                this.gravity = 0.8;
+                this.isGrounded = false;
+
+                this.health = 100;
+                this.energy = 0;
+                this.facingLeft = !isP1;
+                this.isBlocking = false;
+
+                // State handling
+                this.state = 'idle'; // idle, move, attack, hit, dead
+                this.attackType = null; // punch, kick, special
+                this.attackFrame = 0;
+                this.hitCooldown = 0;
+                this.comboCount = 0;
+                this.comboTimer = null;
+
+                // Hitbox setup
+                this.attackBox = {
+                    x: this.x,
+                    y: this.y,
+                    width: 70,
+                    height: 40
+                };
+            }
+
+            update(opponent) {
+                // Apply Gravity
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Floor collision
+                const floorY = this.canvasHeight - 80 - this.height;
+                if (this.y >= floorY) {
+                    this.y = floorY;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                } else {
+                    this.isGrounded = false;
+                }
+
+                // Auto Facing towards opponent if not attacking
+                if (this.state !== 'attack') {
+                    this.facingLeft = this.x > opponent.x;
+                }
+
+                // Update attack box orientation
+                if (this.facingLeft) {
+                    this.attackBox.x = this.x - this.attackBox.width + 10;
+                } else {
+                    this.attackBox.x = this.x + this.width - 10;
+                }
+                this.attackBox.y = this.y + 20;
+
+                // Hit cooldown tick
+                if (this.hitCooldown > 0) this.hitCooldown--;
+
+                // Attack frame progression
+                if (this.state === 'attack') {
+                    this.attackFrame++;
+                    if (this.attackFrame > 15) {
+                        this.state = 'idle';
+                        this.attackType = null;
+                        this.attackFrame = 0;
+                    }
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+
+                // Draw Shield if Blocking
+                if (this.isBlocking) {
+                    ctx.strokeStyle = this.isP1 ? 'rgba(239,68,68,0.7)' : 'rgba(59,130,246,0.7)';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.height / 1.5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Body color & Hit animation feedback
+                let currentBodyColor = this.color;
+                if (this.hitCooldown > 0) {
+                    currentBodyColor = '#ffffff'; // Flash white on damage
+                }
+
+                // Body / Torso
+                ctx.fillStyle = currentBodyColor;
+                ctx.fillRect(this.x, this.y + 30, this.width, 50);
+
+                // Head
+                ctx.fillStyle = this.headColor;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + 18, 16, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Visor / Eyes
+                ctx.fillStyle = '#10b981';
+                const eyeOffset = this.facingLeft ? -4 : 4;
+                ctx.fillRect(this.x + this.width / 2 + eyeOffset - 3, this.y + 14, 8, 4);
+
+                // Legs
+                ctx.fillStyle = '#1e293b';
+                // Left leg
+                ctx.fillRect(this.x + 5, this.y + 80, 16, 30);
+                // Right leg
+                ctx.fillRect(this.x + this.width - 21, this.y + 80, 16, 30);
+
+                // Arms & Attack Pose Animations
+                ctx.strokeStyle = currentBodyColor;
+                ctx.lineWidth = 10;
+                ctx.lineCap = 'round';
+
+                const dir = this.facingLeft ? -1 : 1;
+                const armBaseX = this.x + this.width / 2;
+                const armBaseY = this.y + 40;
+
+                if (this.state === 'attack' && this.attackType === 'punch') {
+                    // Extend arm for punch
+                    ctx.beginPath();
+                    ctx.moveTo(armBaseX, armBaseY);
+                    ctx.lineTo(armBaseX + dir * 65, armBaseY);
+                    ctx.stroke();
+                } else if (this.state === 'attack' && this.attackType === 'kick') {
+                    // Extended leg pose for kick
+                    ctx.fillStyle = '#1e293b';
+                    ctx.beginPath();
+                    ctx.fillRect(armBaseX, armBaseY + 20, dir * 60, 18);
+                } else {
+                    // Guarding stance arms
+                    ctx.beginPath();
+                    ctx.moveTo(armBaseX, armBaseY);
+                    ctx.lineTo(armBaseX + dir * 20, armBaseY + 15);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            attack(type, projectiles) {
+                if (this.state === 'attack' || this.isBlocking) return;
+
+                this.state = 'attack';
+                this.attackType = type;
+                this.attackFrame = 0;
+
+                if (type === 'punch') {
+                    audio.playPunch();
+                } else if (type === 'kick') {
+                    audio.playKick();
+                } else if (type === 'special' && this.energy >= 100) {
+                    this.energy = 0;
+                    audio.playSpecial();
+                    const spawnX = this.facingLeft ? this.x - 20 : this.x + this.width + 20;
+                    const vx = this.facingLeft ? -12 : 12;
+                    projectiles.push(new Fireball(spawnX, this.y + 35, vx, this.isP1 ? 'p1' : 'p2'));
+                }
+            }
+
+            takeDamage(amount) {
+                if (this.isBlocking) {
+                    this.health -= amount * 0.2; // 80% damage reduction when blocking
+                    audio.playBlock();
+                } else {
+                    this.health -= amount;
+                    this.hitCooldown = 12;
+                    audio.playHit();
+                    // Gain special energy when taking damage
+                    this.energy = Math.min(100, this.energy + 12);
+                }
+                this.health = Math.max(0, this.health);
+            }
+        }
+
+        // --- MAIN GAME ENGINE ---
+        class Game {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                this.mode = 'PvsAI'; // 'PvsAI' or 'PvsP'
+                this.isRunning = false;
+                this.isPaused = false;
+
+                this.timer = 60;
+                this.timerInterval = null;
+                this.p1Wins = 0;
+                this.p2Wins = 0;
+                this.round = 1;
+
+                this.keys = {};
+                this.particles = [];
+                this.projectiles = [];
+
+                this.initCanvasSize();
+                window.addEventListener('resize', () => this.initCanvasSize());
+
+                this.p1 = new Fighter({
+                    x: 150,
+                    y: 300,
+                    color: '#ef4444',
+                    headColor: '#dc2626',
+                    isP1: true,
+                    canvasHeight: this.canvas.height
+                });
+
+                this.p2 = new Fighter({
+                    x: this.canvas.width - 200,
+                    y: 300,
+                    color: '#3b82f6',
+                    headColor: '#2563eb',
+                    isP1: false,
+                    canvasHeight: this.canvas.height
+                });
+
+                this.bindControls();
+                this.setupUIEvents();
+            }
+
+            initCanvasSize() {
+                const container = document.getElementById('gameContainer');
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+
+                if (this.p1) this.p1.canvasHeight = this.canvas.height;
+                if (this.p2) this.p2.canvasHeight = this.canvas.height;
+            }
+
+            bindControls() {
+                window.addEventListener('keydown', (e) => {
+                    audio.init();
+                    this.keys[e.key.toLowerCase()] = true;
+                    this.keys[e.code] = true;
+
+                    // Quick P1 Attacks
+                    if (this.isRunning && !this.isPaused) {
+                        if (e.key.toLowerCase() === 'j') this.p1.attack('punch', this.projectiles);
+                        if (e.key.toLowerCase() === 'k') this.p1.attack('kick', this.projectiles);
+                        if (e.key.toLowerCase() === 'l') this.p1.attack('special', this.projectiles);
+
+                        // P2 Attacks (PvsP mode)
+                        if (this.mode === 'PvsP') {
+                            if (e.code === 'Numpad1') this.p2.attack('punch', this.projectiles);
+                            if (e.code === 'Numpad2') this.p2.attack('kick', this.projectiles);
+                            if (e.code === 'Numpad3') this.p2.attack('special', this.projectiles);
+                        }
+                    }
+                });
+
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                    this.keys[e.code] = false;
+                });
+
+                // Touch Controls Event Binding
+                const touchBtns = [
+                    { id: 'tLeft', action: () => this.keys['a'] = true, release: () => this.keys['a'] = false },
+                    { id: 'tRight', action: () => this.keys['d'] = true, release: () => this.keys['d'] = false },
+                    { id: 'tJump', action: () => { if (this.p1.isGrounded) this.p1.vy = this.p1.jumpStrength; } },
+                    { id: 'tBlock', action: () => this.keys['s'] = true, release: () => this.keys['s'] = false },
+                    { id: 'tPunch', action: () => this.p1.attack('punch', this.projectiles) },
+                    { id: 'tKick', action: () => this.p1.attack('kick', this.projectiles) },
+                    { id: 'tSpecial', action: () => this.p1.attack('special', this.projectiles) },
+                ];
+
+                touchBtns.forEach(btn => {
+                    const el = document.getElementById(btn.id);
+                    if (!el) return;
+                    el.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        audio.init();
+                        if (btn.action) btn.action();
+                    });
+                    el.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        if (btn.release) btn.release();
+                    });
+                });
+            }
+
+            setupUIEvents() {
+                document.getElementById('btnPvsAI').addEventListener('click', () => this.startGame('PvsAI'));
+                document.getElementById('btnPvsP').addEventListener('click', () => this.startGame('PvsP'));
+                document.getElementById('btnResume').addEventListener('click', () => this.togglePause(false));
+                document.getElementById('btnRestart').addEventListener('click', () => {
+                    this.togglePause(false);
+                    this.resetMatch();
+                });
+                document.getElementById('btnMenu').addEventListener('click', () => {
+                    this.togglePause(false);
+                    document.getElementById('mainMenu').classList.remove('hidden');
+                    this.isRunning = false;
+                });
+            }
+
+            startGame(selectedMode) {
+                audio.init();
+                this.mode = selectedMode;
+                document.getElementById('mainMenu').classList.add('hidden');
+                document.getElementById('p2Label').textContent = this.mode === 'PvsAI' ? 'CYBER AI' : 'P2 BLUE';
+
+                // Show Touch Controls on Mobile
+                if ('ontouchstart' in window) {
+                    document.getElementById('touchControls').classList.remove('hidden');
+                }
+
+                this.p1Wins = 0;
+                this.p2Wins = 0;
+                this.round = 1;
+                this.resetRound();
+            }
+
+            resetRound() {
+                this.p1.x = 150;
+                this.p1.y = 300;
+                this.p1.health = 100;
+                this.p1.energy = 0;
+                this.p1.state = 'idle';
+
+                this.p2.x = this.canvas.width - 200;
+                this.p2.y = 300;
+                this.p2.health = 100;
+                this.p2.energy = 0;
+                this.p2.state = 'idle';
+
+                this.projectiles = [];
+                this.particles = [];
+                this.timer = 60;
+                this.updateHUD();
+
+                document.getElementById('roundText').textContent = `ROUND ${this.round}`;
+
+                // Banner Announcement
+                const banner = document.getElementById('bannerOverlay');
+                const title = document.getElementById('bannerTitle');
+                banner.classList.remove('hidden');
+                title.textContent = `ROUND ${this.round}`;
+
+                setTimeout(() => {
+                    title.textContent = 'FIGHT!';
+                    setTimeout(() => {
+                        banner.classList.add('hidden');
+                        this.isRunning = true;
+                        this.startTimer();
+                    }, 800);
+                }, 1000);
+            }
+
+            resetMatch() {
+                this.p1Wins = 0;
+                this.p2Wins = 0;
+                this.round = 1;
+                this.resetRound();
+            }
+
+            startTimer() {
+                clearInterval(this.timerInterval);
+                this.timerInterval = setInterval(() => {
+                    if (this.isRunning && !this.isPaused) {
+                        this.timer--;
+                        document.getElementById('timer').textContent = this.timer;
+                        if (this.timer <= 0) {
+                            this.endRound('TIME OUT!');
+                        }
+                    }
+                }, 1000);
+            }
+
+            togglePause(show) {
+                this.isPaused = show;
+                const menu = document.getElementById('pauseMenu');
+                if (show) menu.classList.remove('hidden');
+                else menu.classList.add('hidden');
+            }
+
+            updateHUD() {
+                document.getElementById('p1Health').style.width = `${this.p1.health}%`;
+                document.getElementById('p2Health').style.width = `${this.p2.health}%`;
+                document.getElementById('p1Energy').style.width = `${this.p1.energy}%`;
+                document.getElementById('p2Energy').style.width = `${this.p2.energy}%`;
+                document.getElementById('p1Wins').textContent = `W: ${this.p1Wins}`;
+                document.getElementById('p2Wins').textContent = `W: ${this.p2Wins}`;
+            }
+
+            // AI LOGIC FOR CPU ENEMY
+            updateAI() {
+                if (this.mode !== 'PvsAI' || !this.isRunning || this.p2.health <= 0) return;
+
+                const dist = Math.abs(this.p1.x - this.p2.x);
+
+                // Movement AI
+                if (dist > 75) {
+                    this.p2.vx = this.p2.facingLeft ? -this.p2.speed * 0.7 : this.p2.speed * 0.7;
+                } else {
+                    this.p2.vx = 0;
+                }
+
+                // Random Jump
+                if (Math.random() < 0.015 && this.p2.isGrounded) {
+                    this.p2.vy = this.p2.jumpStrength;
+                }
+
+                // Random Attacks / Blocking
+                if (dist < 85) {
+                    const rand = Math.random();
+                    if (rand < 0.04) this.p2.attack('punch', this.projectiles);
+                    else if (rand < 0.07) this.p2.attack('kick', this.projectiles);
+                    else if (rand < 0.12 && this.p2.energy >= 100) this.p2.attack('special', this.projectiles);
+                    else if (rand < 0.2) this.p2.isBlocking = true;
+                    else this.p2.isBlocking = false;
+                } else {
+                    this.p2.isBlocking = false;
+                }
+            }
+
+            // INPUT HANDLING
+            handleInputs() {
+                if (!this.isRunning || this.isPaused) return;
+
+                // P1 Movement
+                this.p1.vx = 0;
+                if (this.keys['a']) this.p1.vx = -this.p1.speed;
+                if (this.keys['d']) this.p1.vx = this.p1.speed;
+                if (this.keys['w'] && this.p1.isGrounded) {
+                    this.p1.vy = this.p1.jumpStrength;
+                }
+                this.p1.isBlocking = !!this.keys['s'];
+
+                // P2 Movement (2 Player Mode)
+                if (this.mode === 'PvsP') {
+                    this.p2.vx = 0;
+                    if (this.keys['arrowleft']) this.p2.vx = -this.p2.speed;
+                    if (this.keys['arrowright']) this.p2.vx = this.p2.speed;
+                    if (this.keys['arrowup'] && this.p2.isGrounded) {
+                        this.p2.vy = this.p2.jumpStrength;
+                    }
+                    this.p2.isBlocking = !!this.keys['arrowdown'];
+                }
+            }
+
+            // HITBOX & COLLISION SYSTEM
+            checkCollisions() {
+                // P1 Attacks P2
+                if (this.p1.state === 'attack' && this.p1.attackFrame === 4) {
+                    if (this.isHitboxColliding(this.p1.attackBox, this.p2)) {
+                        const dmg = this.p1.attackType === 'kick' ? 14 : 10;
+                        this.p2.takeDamage(dmg);
+                        this.p1.energy = Math.min(100, this.p1.energy + 15);
+                        this.spawnHitParticles(this.p2.x + 20, this.p2.y + 40, '#ef4444');
+                        this.triggerCombo('p1');
+                    }
+                }
+
+                // P2 Attacks P1
+                if (this.p2.state === 'attack' && this.p2.attackFrame === 4) {
+                    if (this.isHitboxColliding(this.p2.attackBox, this.p1)) {
+                        const dmg = this.p2.attackType === 'kick' ? 14 : 10;
+                        this.p1.takeDamage(dmg);
+                        this.p2.energy = Math.min(100, this.p2.energy + 15);
+                        this.spawnHitParticles(this.p1.x + 20, this.p1.y + 40, '#3b82f6');
+                        this.triggerCombo('p2');
+                    }
+                }
+
+                // Projectiles
+                this.projectiles.forEach((proj, idx) => {
+                    proj.update();
+
+                    const target = proj.owner === 'p1' ? this.p2 : this.p1;
+                    if (
+                        proj.x + proj.radius > target.x &&
+                        proj.x - proj.radius < target.x + target.width &&
+                        proj.y + proj.radius > target.y &&
+                        proj.y - proj.radius < target.y + target.height
+                    ) {
+                        target.takeDamage(25);
+                        this.spawnHitParticles(proj.x, proj.y, proj.owner === 'p1' ? '#f97316' : '#06b6d4');
+                        this.projectiles.splice(idx, 1);
+                    } else if (proj.x < 0 || proj.x > this.canvas.width) {
+                        this.projectiles.splice(idx, 1);
+                    }
+                });
+            }
+
+            isHitboxColliding(box, fighter) {
+                return (
+                    box.x < fighter.x + fighter.width &&
+                    box.x + box.width > fighter.x &&
+                    box.y < fighter.y + fighter.height &&
+                    box.y + box.height > fighter.y
+                );
+            }
+
+            triggerCombo(playerKey) {
+                const fighter = this[playerKey];
+                fighter.comboCount++;
+                const comboEl = document.getElementById(`${playerKey}Combo`);
+                comboEl.textContent = `${fighter.comboCount} HITS!`;
+                comboEl.style.opacity = '1';
+
+                clearTimeout(fighter.comboTimer);
+                fighter.comboTimer = setTimeout(() => {
+                    comboEl.style.opacity = '0';
+                    fighter.comboCount = 0;
+                }, 1200);
+            }
+
+            spawnHitParticles(x, y, color) {
+                for (let i = 0; i < 15; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 8 + 2;
+                    this.particles.push(
+                        new Particle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, Math.random() * 4 + 2, 20)
+                    );
+                }
+            }
+
+            endRound(reason) {
+                this.isRunning = false;
+                clearInterval(this.timerInterval);
+
+                let winnerText = reason;
+                if (this.p1.health > this.p2.health) {
+                    this.p1Wins++;
+                    winnerText = 'P1 RED WINS!';
+                } else if (this.p2.health > this.p1.health) {
+                    this.p2Wins++;
+                    winnerText = this.mode === 'PvsAI' ? 'CPU WINS!' : 'P2 BLUE WINS!';
+                } else {
+                    winnerText = 'DRAW ROUND!';
+                }
+
+                this.updateHUD();
+
+                const banner = document.getElementById('bannerOverlay');
+                const title = document.getElementById('bannerTitle');
+                const sub = document.getElementById('bannerSub');
+                banner.classList.remove('hidden');
+                title.textContent = 'K.O.!';
+                sub.textContent = winnerText;
+
+                setTimeout(() => {
+                    if (this.p1Wins >= 2 || this.p2Wins >= 2) {
+                        title.textContent = 'MATCH OVER';
+                        sub.textContent = this.p1Wins >= 2 ? 'P1 IS THE CHAMPION!' : 'P2 IS THE CHAMPION!';
+                        setTimeout(() => {
+                            banner.classList.add('hidden');
+                            document.getElementById('mainMenu').classList.remove('hidden');
+                        }, 2500);
+                    } else {
+                        this.round++;
+                        banner.classList.add('hidden');
+                        sub.textContent = '';
+                        this.resetRound();
+                    }
+                }, 2000);
+            }
+
+            // RENDERING ARENA & SCENERY
+            drawArena() {
+                // Dark Cyberpunk Background
+                const bgGrad = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                bgGrad.addColorStop(0, '#0f172a');
+                bgGrad.addColorStop(0.7, '#1e1b4b');
+                bgGrad.addColorStop(1, '#020617');
+                this.ctx.fillStyle = bgGrad;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Background City Lights Grid / Parallax Lines
+                this.ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)';
+                this.ctx.lineWidth = 1;
+                for (let x = 0; x < this.canvas.width; x += 40) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, this.canvas.height);
+                    this.ctx.stroke();
+                }
+
+                // Stage Floor
+                const floorY = this.canvas.height - 80;
+                const floorGrad = this.ctx.createLinearGradient(0, floorY, 0, this.canvas.height);
+                floorGrad.addColorStop(0, '#334155');
+                floorGrad.addColorStop(1, '#0f172a');
+                this.ctx.fillStyle = floorGrad;
+                this.ctx.fillRect(0, floorY, this.canvas.width, 80);
+
+                // Neon Floor Line
+                this.ctx.strokeStyle = '#06b6d4';
+                this.ctx.lineWidth = 4;
+                this.ctx.shadowColor = '#06b6d4';
+                this.ctx.shadowBlur = 10;
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, floorY);
+                this.ctx.lineTo(this.canvas.width, floorY);
+                this.ctx.stroke();
+                this.ctx.shadowBlur = 0;
+            }
+
+            // MAIN GAME LOOP
+            loop() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.drawArena();
+                this.handleInputs();
+                this.updateAI();
+
+                if (this.isRunning && !this.isPaused) {
+                    this.p1.update(this.p2);
+                    this.p2.update(this.p1);
+                    this.checkCollisions();
+
+                    // Check Round Over by Health KO
+                    if (this.p1.health <= 0 || this.p2.health <= 0) {
+                        this.endRound(this.p1.health <= 0 ? 'K.O.!' : 'K.O.!');
+                    }
+                }
+
+                // Render Characters
+                this.p1.draw(this.ctx);
+                this.p2.draw(this.ctx);
+
+                // Render Projectiles & Particles
+                this.projectiles.forEach(p => p.draw(this.ctx));
+                this.particles.forEach((p, idx) => {
+                    p.update();
+                    p.draw(this.ctx);
+                    if (p.life <= 0) this.particles.splice(idx, 1);
+                });
+
+                this.updateHUD();
+                requestAnimationFrame(() => this.loop());
+            }
+        }
+
+        // START GAME INSTANCE ON WINDOW LOAD
+        window.onload = () => {
+            const game = new Game();
+            game.loop();
+        };
+    </script>
+</body>
+</html>
